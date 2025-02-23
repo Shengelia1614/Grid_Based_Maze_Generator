@@ -10,34 +10,50 @@
 #include "random"
 #include <vector>
 #include <windows.h>
+#include <chrono>
+#include <utility>
+
+
+
+
+
 
 
 //#define Maze_Size 15
+bool GRID[Grid_x][Grid_y];
+
 
 void generator();
+enum sides {
+	LEFT, RIGHT, DOWN, UP
+};
+maze_module direction_changer(maze_module a, sides b);
 
 
 
-bool GRID[Grid_x][Grid_y];
+
+
 
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    
 	generator();
+
+
 }
 
 void generator()
 {
-	
+	int dead_end_percent = 10;
 
-	maze_module modules[16]{
-		{ 0, 0, 0, 0,Grid_Size },
+	maze_module modules[11]{
+		//{ 0, 0, 0, 0,Grid_Size },
 		{ 1, 1, 1, 1,Grid_Size },
-		{ 1, 0, 0, 0,Grid_Size },
+		/*{ 1, 0, 0, 0,Grid_Size },
 		{ 0, 1, 0, 0,Grid_Size },
 		{ 0, 0, 1, 0,Grid_Size },
-		{ 0, 0, 0, 1,Grid_Size },
+		{ 0, 0, 0, 1,Grid_Size },*/
 		{ 1, 1, 1, 0,Grid_Size },
 		{ 1, 1, 0, 1,Grid_Size },
 		{ 1, 0, 1, 1,Grid_Size },
@@ -48,6 +64,7 @@ void generator()
 		{ 0, 1, 1, 0,Grid_Size },
 		{ 0, 1, 0, 1,Grid_Size },
 		{ 0, 0, 1, 1,Grid_Size }
+
 	};
 
 	std::vector<maze_module> left;
@@ -56,7 +73,7 @@ void generator()
 	std::vector<maze_module> up;
 
 
-	for (size_t i = 0; i < 16; i++)
+	for (size_t i = 0; i < 11; i++)
 	{
 		if (modules[i].left)left.push_back(modules[i]);
 		if (modules[i].right)right.push_back(modules[i]);
@@ -67,7 +84,8 @@ void generator()
 	std::srand(time(NULL));
 
 	std::vector<maze_module> to_be_generated_modules;
-	to_be_generated_modules.push_back(modules[rand() % 16]);
+	//to_be_generated_modules.push_back(modules[rand() % 11]);
+	to_be_generated_modules.push_back(modules[0]);
 	std::vector<maze_module> generated_modules;
 	sf::RenderWindow window(sf::VideoMode(1900, 1080), "SFML works!");
 
@@ -77,8 +95,10 @@ void generator()
 
 	int grid_counter = 0;
 
-
+	bool a = 1;
 	
+	auto start = std::chrono::high_resolution_clock::now();
+
 
 	while (window.isOpen())
 	{
@@ -92,6 +112,10 @@ void generator()
 				window.close();
 		}
 
+		
+		
+
+
 
 		if (grid_counter < Maze_Size) {
 			int size = to_be_generated_modules.size();
@@ -99,87 +123,140 @@ void generator()
 			{
 				
 
-				if (to_be_generated_modules[i].left 
-					&& GRID[to_be_generated_modules[i].grid_position.first - 1][to_be_generated_modules[i].grid_position.second]==0) {
+				if (to_be_generated_modules[i].left) {
 
-					GRID[to_be_generated_modules[i].grid_position.first - 1][to_be_generated_modules[i].grid_position.second]=1;
+					if (GRID[to_be_generated_modules[i].grid_position.first - 1][to_be_generated_modules[i].grid_position.second] == 0) {
 
-					maze_module temp = right[rand() % right.size()];
+						GRID[to_be_generated_modules[i].grid_position.first - 1][to_be_generated_modules[i].grid_position.second] = 1;
 
-					temp.grid_position.first = to_be_generated_modules[i].grid_position.first - 1;
-					temp.grid_position.second = to_be_generated_modules[i].grid_position.second;
+						maze_module temp = right[rand() % right.size()];
 
-					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x - Grid_Size, to_be_generated_modules[i].module_sp.getPosition().y);
-					temp.right = 0;
-					
-					to_be_generated_modules.push_back(temp);
+						temp.grid_position.first = to_be_generated_modules[i].grid_position.first - 1;
+						temp.grid_position.second = to_be_generated_modules[i].grid_position.second;
+
+						temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x - Grid_Size, to_be_generated_modules[i].module_sp.getPosition().y);
+						temp.right = 0;
+						
+
+						to_be_generated_modules.push_back(temp);
+					}
+					else {
+						if (rand() % 100 > dead_end_percent) {
+							sides side =LEFT;
+							to_be_generated_modules[i]=direction_changer(to_be_generated_modules[i], side);
+
+
+							//maze_module temp(to_be_generated_modules[i].old_sides[0],1 , to_be_generated_modules[i].old_sides[2], to_be_generated_modules[i].old_sides[3], Grid_Size);
+							////maze_module temp(1, 1, 1, 1, Grid_Size);
+							//temp.grid_position.first = to_be_generated_modules[i].grid_position.first;
+							//temp.grid_position.second = to_be_generated_modules[i].grid_position.second;
+							//temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition());
+							//to_be_generated_modules[i] = temp;
+						}
+					}
 
 				}
-				if (to_be_generated_modules[i].right 
-					&& GRID[to_be_generated_modules[i].grid_position.first + 1][to_be_generated_modules[i].grid_position.second]==0) {
 
-					GRID[to_be_generated_modules[i].grid_position.first + 1][to_be_generated_modules[i].grid_position.second] = 1;
+				if (to_be_generated_modules[i].right ) {
 
-					maze_module temp = left[rand() % left.size()];
+					if (GRID[to_be_generated_modules[i].grid_position.first + 1][to_be_generated_modules[i].grid_position.second] == 0) {
+
+						GRID[to_be_generated_modules[i].grid_position.first + 1][to_be_generated_modules[i].grid_position.second] = 1;
+
+						maze_module temp = left[rand() % left.size()];
 
 
-					temp.grid_position.first = to_be_generated_modules[i].grid_position.first + 1;
-					temp.grid_position.second = to_be_generated_modules[i].grid_position.second;
+						temp.grid_position.first = to_be_generated_modules[i].grid_position.first + 1;
+						temp.grid_position.second = to_be_generated_modules[i].grid_position.second;
 
-					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x + Grid_Size, to_be_generated_modules[i].module_sp.getPosition().y);
-					temp.left = 0;
-					
-					to_be_generated_modules.push_back(temp);
+						temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x + Grid_Size, to_be_generated_modules[i].module_sp.getPosition().y);
+						temp.left = 0;
+
+						to_be_generated_modules.push_back(temp);
+					}
+					else {
+						if (rand() % 100 > dead_end_percent) {
+							sides side = RIGHT;
+							to_be_generated_modules[i] = direction_changer(to_be_generated_modules[i], side);
+						}
+					}
 				}
-				if (to_be_generated_modules[i].down 
-					&& GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second + 1]==0) {
 
-					GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second +1] = 1;
+				if (to_be_generated_modules[i].down ) {
 
-					maze_module temp = up[rand() % up.size()];
+					if (GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second + 1] == 0) {
+
+						GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second + 1] = 1;
+
+						maze_module temp = up[rand() % up.size()];
 
 
-					temp.grid_position.first = to_be_generated_modules[i].grid_position.first;
-					temp.grid_position.second = to_be_generated_modules[i].grid_position.second +1;
+						temp.grid_position.first = to_be_generated_modules[i].grid_position.first;
+						temp.grid_position.second = to_be_generated_modules[i].grid_position.second + 1;
 
-					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x, to_be_generated_modules[i].module_sp.getPosition().y + Grid_Size);
-					temp.up = 0;
-					
-					to_be_generated_modules.push_back(temp);
+						temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x, to_be_generated_modules[i].module_sp.getPosition().y + Grid_Size);
+						temp.up = 0;
+
+						to_be_generated_modules.push_back(temp);
+					}
+					else {
+						if (rand() % 100 > dead_end_percent) {
+							sides side = DOWN;
+							to_be_generated_modules[i] = direction_changer(to_be_generated_modules[i], side);	
+						}
+					}
+
 				}
-				if (to_be_generated_modules[i].up 
-					&& GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second - 1]==0) {
+				if (to_be_generated_modules[i].up ) {
 
-					GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second -1] = 1;
+					if (GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second - 1] == 0) {
 
-					maze_module temp = down[rand() % down.size()];
+						GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second - 1] = 1;
 
-					temp.grid_position.first = to_be_generated_modules[i].grid_position.first;
-					temp.grid_position.second = to_be_generated_modules[i].grid_position.second-1;
+						maze_module temp = down[rand() % down.size()];
 
-					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x, to_be_generated_modules[i].module_sp.getPosition().y - Grid_Size);
-					temp.down = 0;
-					
-					to_be_generated_modules.push_back(temp);
+						temp.grid_position.first = to_be_generated_modules[i].grid_position.first;
+						temp.grid_position.second = to_be_generated_modules[i].grid_position.second - 1;
+
+						temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x, to_be_generated_modules[i].module_sp.getPosition().y - Grid_Size);
+						temp.down = 0;
+
+						to_be_generated_modules.push_back(temp);
+					}
+					else {
+						if (rand() % 100 > dead_end_percent) {
+							sides side = UP;
+							to_be_generated_modules[i] = direction_changer(to_be_generated_modules[i], side);
+						}
+					}
 				}
+				
 				
 				generated_modules.push_back(to_be_generated_modules[i]);
 				to_be_generated_modules.erase(to_be_generated_modules.begin());
 				size--;
 			}
+		}else{
+
+			
+			if (a) {
+				
+				auto now = std::chrono::high_resolution_clock::now();
+				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
+				
+				std::cout << "milliseconds since start: " << duration << " ms" << std::endl;
+				a = false;
+			}
+			
+
+			for (size_t i = 0; i < generated_modules.size(); i++)
+			{
+				window.draw(generated_modules[i].module_sp);
+			}
+			
 		}
 
-		for (size_t i = 0; i < generated_modules.size(); i++)
-		{
-			window.draw(generated_modules[i].module_sp);
-		}
-
-		/*window.draw(modules[1].module_sp);
-
-		modules[1].left = 0;
-
-		window.draw(modules[1].module_sp);*/
-		//std::sleep(5);
+		
 		
 		window.display();
 		grid_counter++;
@@ -187,3 +264,25 @@ void generator()
 	
 	
 }
+
+maze_module direction_changer(maze_module a, sides b) {
+	maze_module temp;
+	switch (b)
+	{
+	case LEFT: temp = maze_module(a.old_sides[0], true, a.old_sides[2], a.old_sides[3], Grid_Size);
+		break;
+	case RIGHT: temp = maze_module(true, a.old_sides[1], a.old_sides[2], a.old_sides[3], Grid_Size);
+		break;
+	case DOWN: temp = maze_module(a.old_sides[0], a.old_sides[1], a.old_sides[2], true, Grid_Size);
+		break;
+	case UP: temp = maze_module(a.old_sides[0], a.old_sides[1], true, a.old_sides[3], Grid_Size);
+		break;
+	}
+	temp.grid_position.first = a.grid_position.first;
+	temp.grid_position.second = a.grid_position.second;
+	temp.module_sp.setPosition(a.module_sp.getPosition());
+
+
+	return temp;
+}
+
