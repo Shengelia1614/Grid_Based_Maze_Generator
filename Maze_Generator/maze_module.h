@@ -5,9 +5,10 @@
 #include "SFML/Main.hpp"
 #include "SFML/Graphics.hpp"
 
-//std::vector<std::vector<bool>> GRID;
+
 
 #define Maze_Size 100
+
 #define Grid_Size 20
 
 #define Grid_x Maze_Size
@@ -20,13 +21,23 @@ class maze_module
 	sf::RenderTexture *texture;
 	
 public:
+
+	//you can change sprite to somethingelse if you are not using sfml 
+	// but you must change the generator function too since sprite position is used to determine actuall position of nodes
 	sf::Sprite module_sp;
 	bool left, right, down, up;
+
+	//this is used to remember what original sides were since we need this in direction changer
+	//original sides gets changed
 	bool old_sides[4];
 	std::pair<int, int> grid_position;
 
+
+	
 	maze_module() {};
 
+
+	//constructor also generates default sprites for the maze
 	maze_module(bool left, bool right, bool down, bool up, int grid_size)
 		: left(left), right(right), down(down), up(up)
 	{
@@ -63,9 +74,9 @@ public:
 		module_sp.setTextureRect(sf::IntRect(0, 0, grid_size, grid_size));
 	}
 
-	/*void default_module_texture(int& grid_size) {
-		
-	}*/
+
+
+	//if you wish to set custom textures yourself
 	void set_texture(const sf::Texture & a) {
 		
 		module_sp.setTexture(a);
