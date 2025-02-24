@@ -12,13 +12,66 @@
 #include <windows.h>
 #include <chrono>
 #include <utility>
-
-
+#include <unordered_map>
+#include <functional>
+#include <string> 
 
 
 //Grid is used to check which positions in grid is already used by a sprite
 //we check this to prevent maze modules generating on top of each other,
 bool GRID[Grid_x][Grid_y];
+
+
+/*
+* i have tried so many hashing functions
+* i tried everything i could
+* but it simply does not wantto work
+* it works for a little bit then it throws an access violation in some god for saken library file
+* that i have no way of understanding why and how
+* 
+* yes i know int int pair should be hashable by default but apparently my compiler cant do it
+* even tho i am using c++14
+* 
+struct pair_hash {
+	template <typename T1, typename T2>
+	std::size_t operator()(const std::pair<T1, T2>& p) const {
+		auto h1 = std::hash<T1>{}(p.first);  // Hash for the first element
+		auto h2 = std::hash<T2>{}(p.second); // Hash for the second element
+		return h1 ^ (h2 << 1); // Combine hashes using XOR and bit shifting
+	}
+};
+
+std::unordered_map<std::pair<int,int>, int,pair_hash> mp;
+
+
+
+
+*/
+
+//instead i will just make a method to turn pair into string and use that
+
+
+struct pair_hash {
+	template <typename T1, typename T2>
+	std::size_t operator()(const std::pair<T1, T2>& p) const {
+		auto h1 = std::hash<T1>{}(p.first);  // Hash for the first element
+		auto h2 = std::hash<T2>{}(p.second); // Hash for the second element
+		return h1 ^ (h2 << 1); // Combine hashes using XOR and bit shifting
+	}
+};
+
+std::unordered_map<std::pair<int, int>, int, pair_hash> mp;
+
+
+
+std::string pair_to_string(std::pair<int,int>& a){
+	std::string result = std::to_string(a.first);
+	result.push_back(' ');
+	result = result + std::to_string(a.second);
+	return result;
+}
+//std::unordered_map<std::string, int> mp;
+
 
 //main generator function
 std::vector<maze_module> generator(sf::RenderWindow& window);
@@ -33,7 +86,7 @@ enum sides {
 };
 maze_module direction_changer(maze_module a, sides b);
 
-
+void dead_end_closer(std::vector<maze_module>& maze);
 
 
 
@@ -49,9 +102,7 @@ int main()
 
 	//this is the vector where we will store all generated maze modules
 	//vector itseld is the full maze
-	std::vector<maze_module> generated_modules;
-
-	generated_modules= generator(window);
+	const std::vector<maze_module> generated_modules= generator(window);
 
 
 
@@ -186,6 +237,11 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 				//if grid is taken then it will proceed as expected if not, then there is a chance that node will change direction this is done in else statement 
 				if (GRID[to_be_generated_modules[i].grid_position.first - 1][to_be_generated_modules[i].grid_position.second] == 0) {
 					
+					
+					//default sprites that will be loaded will be ones that have all sides closed 
+					// it is after we check and set which sides must be opened that we update the sprite
+					//to_be_generated_modules[i].open_sides[0] = 1;
+
 					//update the grid
 					GRID[to_be_generated_modules[i].grid_position.first - 1][to_be_generated_modules[i].grid_position.second] = 1;
 
@@ -197,8 +253,9 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x - Grid_Size, to_be_generated_modules[i].module_sp.getPosition().y);
 					//connected side is made false simply to make code faster by not checking this side 
 					//after its time comes since we already know that its taken
+					//temp.open_sides[1] = 1;
 					temp.right = 0;
-						
+					
 
 					to_be_generated_modules.push_back(temp);
 				}
@@ -215,6 +272,9 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 
 				if (GRID[to_be_generated_modules[i].grid_position.first + 1][to_be_generated_modules[i].grid_position.second] == 0) {
 
+					//to_be_generated_modules[i].open_sides[1] = 1;
+
+
 					GRID[to_be_generated_modules[i].grid_position.first + 1][to_be_generated_modules[i].grid_position.second] = 1;
 
 					maze_module temp = left[rand() % left.size()];
@@ -224,8 +284,8 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 					temp.grid_position.second = to_be_generated_modules[i].grid_position.second;
 
 					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x + Grid_Size, to_be_generated_modules[i].module_sp.getPosition().y);
-					temp.left = 0;
-
+					temp.open_sides[0]=1;
+					//temp.left = 0;
 					to_be_generated_modules.push_back(temp);
 				}
 				else {
@@ -240,6 +300,8 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 
 				if (GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second + 1] == 0) {
 
+					//to_be_generated_modules[i].open_sides[2] = 1;
+
 					GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second + 1] = 1;
 
 					maze_module temp = up[rand() % up.size()];
@@ -249,6 +311,7 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 					temp.grid_position.second = to_be_generated_modules[i].grid_position.second + 1;
 
 					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x, to_be_generated_modules[i].module_sp.getPosition().y + Grid_Size);
+					//temp.open_sides[3] = 1;
 					temp.up = 0;
 
 					to_be_generated_modules.push_back(temp);
@@ -265,6 +328,8 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 
 				if (GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second - 1] == 0) {
 
+					//to_be_generated_modules[i].open_sides[3] = 1;
+
 					GRID[to_be_generated_modules[i].grid_position.first][to_be_generated_modules[i].grid_position.second - 1] = 1;
 
 					maze_module temp = down[rand() % down.size()];
@@ -273,6 +338,7 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 					temp.grid_position.second = to_be_generated_modules[i].grid_position.second - 1;
 
 					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x, to_be_generated_modules[i].module_sp.getPosition().y - Grid_Size);
+					//temp.open_sides[2] = 1;
 					temp.down = 0;
 
 					to_be_generated_modules.push_back(temp);
@@ -284,8 +350,13 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 					}
 				}
 			}
-				
-			//one all sides for a to be generated_moduls are checked then it is added to generated modules and then erased
+			//opening sides that need to be connected
+			//to_be_generated_modules[i].module_sprite_changer();
+			//once all sides for a to be generated_moduls are checked then it is added to generated modules and then erased
+
+			//std::make_pair(to_be_generated_modules[i].grid_position.first, to_be_generated_modules[i].grid_position.second)
+			mp[std::make_pair(to_be_generated_modules[i].grid_position.first, to_be_generated_modules[i].grid_position.second)] = generated_modules.size();
+
 			generated_modules.push_back(to_be_generated_modules[i]);
 			to_be_generated_modules.erase(to_be_generated_modules.begin());
 			size--;
@@ -293,7 +364,7 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 		grid_counter++;
 	}
 
-			
+	dead_end_closer(generated_modules);
 	
 	//getting the time it needed to finish the maze			
 	auto now = std::chrono::high_resolution_clock::now();
@@ -329,4 +400,18 @@ maze_module direction_changer(maze_module a, sides b) {
 
 	return temp;
 }
+
+void dead_end_closer(std::vector<maze_module> &maze) {
+
+	for (size_t i = 0; i < maze.size(); i++)
+	{
+		if (maze[i].old_sides[0] && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first - 1, maze[i].grid_position.second})].right) { maze[i].open_sides[0] = 1; }
+		if (maze[i].old_sides[1] && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first + 1, maze[i].grid_position.second})].right) { maze[i].open_sides[1]=1; }
+		if (maze[i].old_sides[2] && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second})].right + 1) { maze[i].open_sides[2]=1; }
+		if (maze[i].old_sides[3] && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second})].right - 1) { maze[i].open_sides[3]=1; }
+		maze[i].module_sprite_changer();
+	}
+
+}
+
 
