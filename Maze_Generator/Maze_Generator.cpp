@@ -23,7 +23,7 @@
 bool GRID[Grid_x][Grid_y];
 
 
-void generator();
+std::vector<maze_module> generator(sf::RenderWindow& window);
 enum sides {
 	LEFT, RIGHT, DOWN, UP
 };
@@ -38,12 +38,42 @@ maze_module direction_changer(maze_module a, sides b);
 int main()
 {
     
-	generator();
+	
+
+	sf::RenderWindow window(sf::VideoMode(1900, 1080), "SFML works!");
+
+	std::vector<maze_module> generated_modules;
+
+	generated_modules= generator(window);
+
+	while (window.isOpen())
+	{
+		window.clear(sf::Color::Black);
 
 
+		sf::Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				window.close();
+		}
+
+
+
+
+		for (size_t i = 0; i < generated_modules.size(); i++)
+		{
+			window.draw(generated_modules[i].module_sp);
+		}
+
+
+
+		window.display();
+
+	}
 }
 
-void generator()
+std::vector<maze_module> generator(sf::RenderWindow& window)
 {
 	int dead_end_percent = 10;
 
@@ -87,7 +117,7 @@ void generator()
 	//to_be_generated_modules.push_back(modules[rand() % 11]);
 	to_be_generated_modules.push_back(modules[0]);
 	std::vector<maze_module> generated_modules;
-	sf::RenderWindow window(sf::VideoMode(1900, 1080), "SFML works!");
+	
 
 	to_be_generated_modules[0].module_sp.setPosition(window.getSize().x/2-Grid_Size/2, window.getSize().y/2- Grid_Size / 2);
 	GRID[Grid_x / 2][Grid_y / 2] = 1;
@@ -100,24 +130,7 @@ void generator()
 	auto start = std::chrono::high_resolution_clock::now();
 
 
-	while (window.isOpen())
-	{
-		window.clear(sf::Color::Black);
-		
-
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
-
-		
-		
-
-
-
-		if (grid_counter < Maze_Size) {
+		while (grid_counter < Maze_Size) {
 			int size = to_be_generated_modules.size();
 			for (size_t i = 0; i < size; i++)
 			{
@@ -144,14 +157,6 @@ void generator()
 						if (rand() % 100 > dead_end_percent) {
 							sides side =LEFT;
 							to_be_generated_modules[i]=direction_changer(to_be_generated_modules[i], side);
-
-
-							//maze_module temp(to_be_generated_modules[i].old_sides[0],1 , to_be_generated_modules[i].old_sides[2], to_be_generated_modules[i].old_sides[3], Grid_Size);
-							////maze_module temp(1, 1, 1, 1, Grid_Size);
-							//temp.grid_position.first = to_be_generated_modules[i].grid_position.first;
-							//temp.grid_position.second = to_be_generated_modules[i].grid_position.second;
-							//temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition());
-							//to_be_generated_modules[i] = temp;
 						}
 					}
 
@@ -236,33 +241,21 @@ void generator()
 				to_be_generated_modules.erase(to_be_generated_modules.begin());
 				size--;
 			}
-		}else{
-
-			
-			if (a) {
-				
-				auto now = std::chrono::high_resolution_clock::now();
-				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
-				
-				std::cout << "milliseconds since start: " << duration << " ms" << std::endl;
-				a = false;
-			}
-			
-
-			for (size_t i = 0; i < generated_modules.size(); i++)
-			{
-				window.draw(generated_modules[i].module_sp);
-			}
-			
+			grid_counter++;
 		}
 
-		
-		
-		window.display();
-		grid_counter++;
-	}
+			
+		if (a) {
+				
+			auto now = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count();
+				
+			std::cout << "milliseconds since start: " << duration << " ms" << std::endl;
+			a = false;
+		}
+
 	
-	
+		return generated_modules;
 }
 
 maze_module direction_changer(maze_module a, sides b) {
