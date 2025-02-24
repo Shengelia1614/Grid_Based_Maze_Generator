@@ -22,34 +22,6 @@
 bool GRID[Grid_x][Grid_y];
 
 
-/*
-* i have tried so many hashing functions
-* i tried everything i could
-* but it simply does not wantto work
-* it works for a little bit then it throws an access violation in some god for saken library file
-* that i have no way of understanding why and how
-* 
-* yes i know int int pair should be hashable by default but apparently my compiler cant do it
-* even tho i am using c++14
-* 
-struct pair_hash {
-	template <typename T1, typename T2>
-	std::size_t operator()(const std::pair<T1, T2>& p) const {
-		auto h1 = std::hash<T1>{}(p.first);  // Hash for the first element
-		auto h2 = std::hash<T2>{}(p.second); // Hash for the second element
-		return h1 ^ (h2 << 1); // Combine hashes using XOR and bit shifting
-	}
-};
-
-std::unordered_map<std::pair<int,int>, int,pair_hash> mp;
-
-
-
-
-*/
-
-//instead i will just make a method to turn pair into string and use that
-
 
 struct pair_hash {
 	template <typename T1, typename T2>
@@ -63,14 +35,6 @@ struct pair_hash {
 std::unordered_map<std::pair<int, int>, int, pair_hash> mp;
 
 
-
-std::string pair_to_string(std::pair<int,int>& a){
-	std::string result = std::to_string(a.first);
-	result.push_back(' ');
-	result = result + std::to_string(a.second);
-	return result;
-}
-//std::unordered_map<std::string, int> mp;
 
 
 //main generator function
@@ -104,19 +68,14 @@ int main()
 	//vector itseld is the full maze
 	const std::vector<maze_module> generated_modules= generator(window);
 
-
+	std::cout << "maze is generated" << std::endl;
 
 	while (window.isOpen())
 	{
 		window.clear(sf::Color::Black);
+		
 
-
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
+		
 
 
 		//drawing the maze
@@ -124,13 +83,26 @@ int main()
 		for (size_t i = 0; i < generated_modules.size(); i++)
 		{
 			window.draw(generated_modules[i].module_sp);
+			
 		}
-
+		//std::cout << "drawn" << std::endl;
 
 
 		window.display();
 
+
+
+		sf::Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				window.close();
+
+		}
+
 	}
+	std::cout << "done" << std::endl;
+	return 0;
 }
 
 
@@ -284,8 +256,8 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 					temp.grid_position.second = to_be_generated_modules[i].grid_position.second;
 
 					temp.module_sp.setPosition(to_be_generated_modules[i].module_sp.getPosition().x + Grid_Size, to_be_generated_modules[i].module_sp.getPosition().y);
-					temp.open_sides[0]=1;
-					//temp.left = 0;
+					//temp.open_sides[0]=1;
+					temp.left = 0;
 					to_be_generated_modules.push_back(temp);
 				}
 				else {
@@ -350,14 +322,21 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 					}
 				}
 			}
-			//opening sides that need to be connected
-			//to_be_generated_modules[i].module_sprite_changer();
-			//once all sides for a to be generated_moduls are checked then it is added to generated modules and then erased
+
 
 			//std::make_pair(to_be_generated_modules[i].grid_position.first, to_be_generated_modules[i].grid_position.second)
 			mp[std::make_pair(to_be_generated_modules[i].grid_position.first, to_be_generated_modules[i].grid_position.second)] = generated_modules.size();
+			//std::cout << pair_to_string(to_be_generated_modules[i].grid_position) << "  " << generated_modules.size() <<std::endl;
+			//mp[std::string(pair_to_string(to_be_generated_modules[i].grid_position))]=generated_modules.size();
 
+			
+
+
+			//opening sides that need to be connected
+			//to_be_generated_modules[i].module_sprite_changer();
+			//once all sides for a to be generated_moduls are checked then it is added to generated modules and then erased
 			generated_modules.push_back(to_be_generated_modules[i]);
+			
 			to_be_generated_modules.erase(to_be_generated_modules.begin());
 			size--;
 		}
@@ -403,12 +382,72 @@ maze_module direction_changer(maze_module a, sides b) {
 
 void dead_end_closer(std::vector<maze_module> &maze) {
 
+	
+	
 	for (size_t i = 0; i < maze.size(); i++)
 	{
-		if (maze[i].old_sides[0] && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first - 1, maze[i].grid_position.second})].right) { maze[i].open_sides[0] = 1; }
-		if (maze[i].old_sides[1] && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first + 1, maze[i].grid_position.second})].right) { maze[i].open_sides[1]=1; }
-		if (maze[i].old_sides[2] && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second})].right + 1) { maze[i].open_sides[2]=1; }
-		if (maze[i].old_sides[3] && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second})].right - 1) { maze[i].open_sides[3]=1; }
+		if (maze[i].old_sides[0] ) {
+			bool temp = 0;
+			try {
+				mp.at(std::pair<int, int>{maze[i].grid_position.first - 1, maze[i].grid_position.second});
+			}
+			catch (const std::exception& e) {
+				temp = 1;
+				}
+
+			if(temp==0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first - 1, maze[i].grid_position.second})].right)
+			maze[i].open_sides[0] = 1;
+		}
+		if (maze[i].old_sides[1]) {
+			bool temp = 0;
+			try {
+				mp.at(std::pair<int, int>{maze[i].grid_position.first + 1, maze[i].grid_position.second});
+			}
+			catch (const std::exception& e) {
+				temp = 1;
+			}
+
+			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first + 1, maze[i].grid_position.second})].left)
+				maze[i].open_sides[1] = 1;
+		}
+		if (maze[i].old_sides[2]) {
+			bool temp = 0;
+			try {
+				mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second+1});
+			}
+			catch (const std::exception& e) {
+				temp = 1;
+			}
+
+			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second+1})].up)
+				maze[i].open_sides[2] = 1;
+		}
+		if (maze[i].old_sides[3]) {
+			bool temp = 0;
+			try {
+				mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second-1});
+			}
+			catch (const std::exception& e) {
+				temp = 1;
+			}
+
+			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second-1})].down)
+				maze[i].open_sides[3] = 1;
+		}
+
+		/*if (maze[i].old_sides[1]) {
+			if (Maze_GRID[maze[i].grid_position.first + 1][maze[i].grid_position.second] != nullptr
+				&& Maze_GRID[maze[i].grid_position.first + 1][maze[i].grid_position.second]->right) maze[i].open_sides[1] = 1;
+		}
+		if (maze[i].old_sides[2]) {
+			if (Maze_GRID[maze[i].grid_position.first][maze[i].grid_position.second + 1] != nullptr
+				&& Maze_GRID[maze[i].grid_position.first][maze[i].grid_position.second + 1]->right) maze[i].open_sides[2] = 1;
+		}
+		if (maze[i].old_sides[3]) {
+			if (Maze_GRID[maze[i].grid_position.first][maze[i].grid_position.second - 1] != nullptr
+				&& Maze_GRID[maze[i].grid_position.first][maze[i].grid_position.second - 1]->right) maze[i].open_sides[3] = 1;
+		}*/
+		
 		maze[i].module_sprite_changer();
 	}
 

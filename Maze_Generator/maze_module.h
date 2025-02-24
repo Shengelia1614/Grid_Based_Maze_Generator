@@ -7,7 +7,7 @@
 
 
 
-#define Maze_Size 100
+#define Maze_Size 50
 
 #define Grid_Size 40
 
@@ -48,6 +48,10 @@ public:
 		old_sides[2] = down;
 		old_sides[3] = up;
 
+		open_sides[0] = 0;
+		open_sides[1] = 0;
+		open_sides[2] = 0;
+		open_sides[3] = 0;
 		//default_module_texture(a);
 		//sf::RenderTexture texture;
 		texture = new sf::RenderTexture();
