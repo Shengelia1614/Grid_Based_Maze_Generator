@@ -19,6 +19,9 @@ nevertheless, maze will never go past the grid size so you can consistently make
 
 here are some examples of generated mazes:
 
+white lines are actuall coridors, not walls
+red squares are dead end walls
+
 ![Screenshot 2025-02-26 153721](https://github.com/user-attachments/assets/fdcd5987-214a-4d24-99b0-b4fe14c41a69)
 ![Screenshot 2025-02-26 153736](https://github.com/user-attachments/assets/c36f5289-2a82-4155-aa6e-ff9bfe385e2a)
 ![Screenshot 2025-02-26 153742](https://github.com/user-attachments/assets/1ab24fc0-5c28-4544-acc2-6d7f8149f5ff)
