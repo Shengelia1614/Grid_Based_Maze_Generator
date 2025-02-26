@@ -323,17 +323,12 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 				}
 			}
 
-
-			//std::make_pair(to_be_generated_modules[i].grid_position.first, to_be_generated_modules[i].grid_position.second)
 			mp[std::make_pair(to_be_generated_modules[i].grid_position.first, to_be_generated_modules[i].grid_position.second)] = generated_modules.size();
-			//std::cout << pair_to_string(to_be_generated_modules[i].grid_position) << "  " << generated_modules.size() <<std::endl;
-			//mp[std::string(pair_to_string(to_be_generated_modules[i].grid_position))]=generated_modules.size();
 
 			
 
 
-			//opening sides that need to be connected
-			//to_be_generated_modules[i].module_sprite_changer();
+			
 			//once all sides for a to be generated_moduls are checked then it is added to generated modules and then erased
 			generated_modules.push_back(to_be_generated_modules[i]);
 			
@@ -343,6 +338,8 @@ std::vector<maze_module> generator(sf::RenderWindow& window)
 		grid_counter++;
 	}
 
+
+	//this function will go over all the generated nodes adn open the sides accordingly
 	dead_end_closer(generated_modules);
 	
 	//getting the time it needed to finish the maze			
@@ -395,7 +392,7 @@ void dead_end_closer(std::vector<maze_module> &maze) {
 				temp = 1;
 				}
 
-			if(temp==0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first - 1, maze[i].grid_position.second})].right)
+			if(temp==0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first - 1, maze[i].grid_position.second})].old_sides[1])
 			maze[i].open_sides[0] = 1;
 		}
 		if (maze[i].old_sides[1]) {
@@ -407,7 +404,7 @@ void dead_end_closer(std::vector<maze_module> &maze) {
 				temp = 1;
 			}
 
-			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first + 1, maze[i].grid_position.second})].left)
+			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first + 1, maze[i].grid_position.second})].old_sides[0])
 				maze[i].open_sides[1] = 1;
 		}
 		if (maze[i].old_sides[2]) {
@@ -419,7 +416,7 @@ void dead_end_closer(std::vector<maze_module> &maze) {
 				temp = 1;
 			}
 
-			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second+1})].up)
+			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second+1})].old_sides[3])
 				maze[i].open_sides[2] = 1;
 		}
 		if (maze[i].old_sides[3]) {
@@ -431,22 +428,9 @@ void dead_end_closer(std::vector<maze_module> &maze) {
 				temp = 1;
 			}
 
-			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second-1})].down)
+			if (temp == 0 && maze[mp.at(std::pair<int, int>{maze[i].grid_position.first, maze[i].grid_position.second-1})].old_sides[2])
 				maze[i].open_sides[3] = 1;
 		}
-
-		/*if (maze[i].old_sides[1]) {
-			if (Maze_GRID[maze[i].grid_position.first + 1][maze[i].grid_position.second] != nullptr
-				&& Maze_GRID[maze[i].grid_position.first + 1][maze[i].grid_position.second]->right) maze[i].open_sides[1] = 1;
-		}
-		if (maze[i].old_sides[2]) {
-			if (Maze_GRID[maze[i].grid_position.first][maze[i].grid_position.second + 1] != nullptr
-				&& Maze_GRID[maze[i].grid_position.first][maze[i].grid_position.second + 1]->right) maze[i].open_sides[2] = 1;
-		}
-		if (maze[i].old_sides[3]) {
-			if (Maze_GRID[maze[i].grid_position.first][maze[i].grid_position.second - 1] != nullptr
-				&& Maze_GRID[maze[i].grid_position.first][maze[i].grid_position.second - 1]->right) maze[i].open_sides[3] = 1;
-		}*/
 		
 		maze[i].module_sprite_changer();
 	}

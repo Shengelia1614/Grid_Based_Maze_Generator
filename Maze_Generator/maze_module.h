@@ -122,6 +122,7 @@ public:
 		texture_updated->clear(sf::Color::Black);
 
 
+
 		//texture.display();
 
 
